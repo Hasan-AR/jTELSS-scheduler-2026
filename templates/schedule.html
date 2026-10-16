@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>jTELSS26 Scheduling Assistant</title>
+  <style>
+    :root {
+      --brand-navy: #1f2f68;
+      --brand-blue: #234a9c;
+      --surface-glow: rgba(255,255,255,0.94);
+      --slot-bg: linear-gradient(150deg, #f1f6ff 0%, #f7fbff 100%);
+    }
+    /* Global styling */
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f8ff 0%, #f1f6ff 60%, #eef4ff 100%);
+      margin: 0;
+      color: #23324f;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page-shell {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 36px;
+      background: var(--surface-glow);
+      box-shadow: 0 6px 18px rgba(31, 47, 104, 0.12);
+      position: sticky;
+      top: 0;
+      z-index: 15;
+      backdrop-filter: blur(6px);
+    }
+    .brand-header img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title span {
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #5e6f9a;
+    }
+    .brand-title h1 {
+      margin: 4px 0 0;
+      font-size: 24px;
+      font-weight: 600;
+      color: #192b54;
+    }
+    .schedule-intro {
+      padding: 28px 36px 8px;
+      max-width: 960px;
+      color: #334266;
+      line-height: 1.5;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 16px 24px;
+    }
+    .schedule-intro p {
+      margin: 0;
+      font-size: 0.98rem;
+      flex: 1 1 280px;
+    }
+    .metric-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,0.92);
+      border: 1px solid rgba(47, 74, 140, 0.16);
+      padding: 10px 16px;
+      border-radius: 999px;
+      font-weight: 600;
+      color: #1f2f68;
+      box-shadow: 0 10px 18px rgba(27, 46, 90, 0.12);
+      letter-spacing: 0.04em;
+    }
+    /* Overall container for day columns */
+    .schedule-container {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      justify-content: flex-start;
+      width: 100%;
+      padding: 24px 28px 40px;
+      box-sizing: border-box;
+    }
+    /* Each day column */
+    .day-column {
+      background: var(--surface-glow);
+      border: 1px solid rgba(47, 74, 140, 0.18);
+      border-radius: 18px;
+      width: 450px;
+      flex: 0 0 450px;
+      max-width: 450px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 30px rgba(27, 46, 90, 0.12);
+      overflow: hidden;
+    }
+    .day-header {
+      background: linear-gradient(135deg, var(--brand-navy), var(--brand-blue));
+      color: #fff;
+      text-align: center;
+      padding: 16px;
+      font-size: 1.15em;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    /* Container for time slots within a day */
+    .slot-container {
+      padding: 18px 20px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    /* Each time slot */
+    .time-slot {
+      background: var(--slot-bg);
+      border: 1px solid rgba(64, 102, 176, 0.26);
+      border-radius: 14px;
+      padding: 18px 16px 16px;
+      position: relative;
+      box-shadow: 0 10px 20px rgba(36, 58, 118, 0.12);
+      transition: box-shadow 0.2s ease, background 0.2s ease;
+    }
+    .time-slot:hover {
+      background: linear-gradient(150deg, #edf3ff 0%, #f9fbff 100%);
+      box-shadow: 0 16px 28px rgba(36, 58, 118, 0.18);
+    }
+    /* Drag handle for the complete time slot */
+    .slot-handle {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      background: #fff;
+      border: 1px solid rgba(70, 100, 166, 0.35);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1f2f68;
+      font-size: 16px;
+      cursor: move;
+      box-shadow: 0 8px 16px rgba(31, 47, 104, 0.18);
+    }
+    /* Session container: sessions arranged side by side */
+    .session-container {
+      display: flex;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: space-between;
+    }
+    .session {
+      flex: 1;
+      border: 1px solid rgba(70, 130, 210, 0.32);
+      background: linear-gradient(160deg, #e8f1ff 0%, #f4f9ff 100%);
+      padding: 12px 10px;
+      text-align: center;
+      cursor: move;
+      min-width: 80px;
+      border-radius: 10px;
+      box-shadow: 0 6px 14px rgba(42, 74, 140, 0.16);
+      white-space: pre-wrap;
+      font-size: 0.92em;
+      color: #1f2f54;
+      line-height: 1.3;
+    }
+    .session strong {
+      display: block;
+      font-size: 0.94em;
+      margin-bottom: 4px;
+      color: #20305a;
+    }
+    /* Export button styling */
+    #export-btn {
+      align-self: center;
+      margin: 12px auto 40px;
+      padding: 14px 26px;
+      font-size: 16px;
+      cursor: pointer;
+      background: linear-gradient(135deg, var(--brand-navy), var(--brand-blue));
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      box-shadow: 0 16px 26px rgba(27, 46, 90, 0.22);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    #export-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 22px 32px rgba(27, 46, 90, 0.28);
+    }
+    #export-btn:active {
+      transform: scale(0.99);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="brand-header">
+      <img src="https://ea-tel.eu/wp-content/uploads/JTELSS-brand-square-logo-large-1-279x279.png" alt="jTELSS logo">
+      <div class="brand-title">
+        <span>jTELSS 2026</span>
+        <h1>Scheduling Assistant</h1>
+      </div>
+    </header>
+
+    <section class="schedule-intro">
+      <p>Drag and drop time slots or individual sessions to craft the week. Export your current plan once you are happy with the arrangement.</p>
+      <div class="metric-pill" id="workshop-count">Workshops: 0</div>
+      <div class="metric-pill" id="slot-count">Slots: 0</div>
+      <div class="metric-pill" id="session-count">Sessions: 0</div>
+    </section>
+
+    <div class="schedule-container" id="schedule-container">
+      <!-- Day columns will be injected here by JavaScript -->
+    </div>
+    <button id="export-btn">Export to Excel</button>
+  </div>
+
+  <!-- Include SortableJS from CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+  <script type="application/json" id="schedule-data">{{ schedule | tojson }}</script>
+  <script>
+    // Let schedule be injected as a JavaScript object via the tojson filter.
+    const schedule = JSON.parse(document.getElementById("schedule-data").textContent);
+    const dayNames = {1:"Monday", 2:"Tuesday", 3:"Wednesday", 4:"Thursday", 5:"Friday", 6:"Saturday"};
+    const container = document.getElementById("schedule-container");
+
+    let totalSlots = 0;
+    let totalSessions = 0;
+    const totalWorkshops = typeof schedule.workshop_count === "number" ? schedule.workshop_count : 0;
+
+    // Create one day column for each day.
+    schedule.days.forEach(day => {
+      const dayCol = document.createElement("div");
+      dayCol.className = "day-column";
+      dayCol.setAttribute("data-day", day.day);
+
+      // Day header with the day name.
+      const header = document.createElement("div");
+      header.className = "day-header";
+      header.innerText = dayNames[day.day] || ("Day " + day.day);
+      dayCol.appendChild(header);
+
+      // Container for time slots for this day.
+      const slotContainer = document.createElement("div");
+      slotContainer.className = "slot-container";
+
+      // For each time slot, create a container only if there is at least one session.
+      day.slots.forEach(slot => {
+        if (!slot.sessions || slot.sessions.length === 0) {
+          // Skip empty time slots.
+          return;
+        }
+        const timeSlot = document.createElement("div");
+        timeSlot.className = "time-slot";
+        timeSlot.setAttribute("data-slot", slot.slot);
+
+        // Add a circular drag-handle icon.
+        const slotHandle = document.createElement("div");
+        slotHandle.className = "slot-handle";
+        slotHandle.innerText = "≡";
+        timeSlot.appendChild(slotHandle);
+
+        // Container for the sessions arranged horizontally.
+        const sessionContainer = document.createElement("div");
+        sessionContainer.className = "session-container";
+        slot.sessions.forEach(sess => {
+          const sessDiv = document.createElement("div");
+          sessDiv.className = "session";
+          sessDiv.setAttribute("data-response-id", sess.response_id);
+          sessDiv.setAttribute("data-session-id", sess.session_id);
+          sessDiv.setAttribute("data-first-author", sess.first_author);
+          sessDiv.setAttribute("data-title", sess.title);
+          sessDiv.setAttribute("data-workshop-type", sess.workshop_type);
+          sessDiv.innerText = sess.title + "\n(" + sess.first_author + ")";
+          sessionContainer.appendChild(sessDiv);
+          totalSessions += 1;
+        });
+        timeSlot.appendChild(sessionContainer);
+        slotContainer.appendChild(timeSlot);
+        totalSlots += 1;
+      });
+
+      dayCol.appendChild(slotContainer);
+      container.appendChild(dayCol);
+
+      // Enable drag-and-drop of complete time slots, allowing cross-day dragging.
+      Sortable.create(slotContainer, {
+        group: 'timeSlots',
+        animation: 150,
+        handle: '.slot-handle'
+      });
+
+      // Enable drag-and-drop for sessions within each time slot.
+      slotContainer.querySelectorAll(".time-slot").forEach(ts => {
+        const sessionCont = ts.querySelector(".session-container");
+        Sortable.create(sessionCont, {
+          animation: 150,
+          group: { name: 'sessions', pull: true, put: true },
+          draggable: '.session',
+          forceFallback: true,
+          fallbackOnBody: true,
+          fallbackTolerance: 3
+        });
+      });
+    });
+
+    document.getElementById("workshop-count").textContent = `Workshops: ${totalWorkshops}`;
+    document.getElementById("slot-count").textContent = `Slots: ${totalSlots}`;
+    document.getElementById("session-count").textContent = `Sessions: ${totalSessions}`;
+
+    // Export functionality: reconstruct the updated schedule JSON.
+    document.getElementById("export-btn").addEventListener("click", () => {
+      const newSchedule = { days: [] };
+      const dayCols = document.querySelectorAll(".day-column");
+      dayCols.forEach(dayCol => {
+        const day = parseInt(dayCol.getAttribute("data-day"));
+        const dayObj = { day: day, slots: [] };
+        const timeSlots = dayCol.querySelectorAll(".time-slot");
+        timeSlots.forEach((ts, index) => {
+          const sessionCont = ts.querySelector(".session-container");
+          const sessions = [];
+          sessionCont.querySelectorAll(".session").forEach(sessDiv => {
+            sessions.push({
+              response_id: parseInt(sessDiv.getAttribute("data-response-id")),
+              session_id: parseInt(sessDiv.getAttribute("data-session-id")),
+              first_author: sessDiv.getAttribute("data-first-author"),
+              title: sessDiv.getAttribute("data-title"),
+              workshop_type: sessDiv.getAttribute("data-workshop-type")
+            });
+          });
+          // Assign a new slot number based on the current order.
+          dayObj.slots.push({
+            slot: index + 1,
+            sessions: sessions
+          });
+        });
+        newSchedule.days.push(dayObj);
+      });
+
+      fetch("/export", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schedule: newSchedule })
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(text || "Export failed.");
+          });
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "schedule.xlsx";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+      })
+      .catch(err => {
+        alert(err.message);
+      });
+    });
+  </script>
+</body>
+</html>

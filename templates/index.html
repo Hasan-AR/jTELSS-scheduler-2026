@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Upload Conference Schedule</title>
+  <style>
+    :root {
+      --brand-navy: #1f2f68;
+      --brand-sky: #e6efff;
+      --brand-mint: #e5f4f2;
+      --card-shadow: 0 18px 32px rgba(31, 47, 104, 0.12);
+      --border-soft: 1px solid rgba(47, 74, 140, 0.18);
+    }
+    body {
+      font-family: "Segoe UI", Arial, sans-serif;
+      background: linear-gradient(135deg, #f4f7ff 0%, #eef5ff 70%, #f7fbff 100%);
+      margin: 0;
+      color: #243252;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .page-shell {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+    .brand-header {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 18px 36px;
+      background: rgba(255,255,255,0.94);
+      box-shadow: 0 6px 18px rgba(28, 45, 88, 0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(6px);
+    }
+    .brand-header img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+    .brand-title {
+      display: flex;
+      flex-direction: column;
+    }
+    .brand-title span {
+      font-size: 13px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: #60719a;
+    }
+    .brand-title h1 {
+      margin: 2px 0 0;
+      font-size: 22px;
+      font-weight: 600;
+      color: #1c2c54;
+    }
+    /* Container for both forms */
+    .forms-container {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      padding: 40px 24px 56px;
+    }
+    .form-container {
+      background: linear-gradient(160deg, rgba(255,255,255,0.96) 0%, rgba(233,241,254,0.9) 100%);
+      padding: 28px 30px;
+      border: var(--border-soft);
+      box-shadow: var(--card-shadow);
+      border-radius: 18px;
+      width: 350px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .form-container h1 {
+      text-align: center;
+      margin: 0;
+      font-size: 1.35rem;
+      color: #1f2f68;
+    }
+    h3 {
+      text-align: left;
+      margin: 8px 0 0;
+      font-size: 1rem;
+      color: #264a83;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    label {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #2b3d64;
+    }
+    input[type="number"],
+    input[type="file"] {
+      padding: 10px 12px;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 12px;
+      border: 1px solid rgba(58, 91, 160, 0.28);
+      background: #fff;
+      transition: border 0.2s ease, box-shadow 0.2s ease;
+      font-size: 0.95rem;
+      color: #23304a;
+    }
+    input[type="number"]:focus,
+    input[type="file"]:focus {
+      outline: none;
+      border-color: #335ec4;
+      box-shadow: 0 0 0 3px rgba(51, 94, 196, 0.18);
+    }
+    input[type="submit"] {
+      padding: 12px;
+      background: linear-gradient(135deg, #1f2f68, #234a9c);
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      cursor: pointer;
+      margin-top: 4px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    input[type="submit"]:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 22px rgba(35, 74, 156, 0.25);
+    }
+    input[type="submit"]:active {
+      transform: scale(0.99);
+    }
+    /* Spinner overlay styles */
+    #loadingIndicator {
+      display: none; /* Initially hidden */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1.5s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="brand-header">
+      <img src="https://ea-tel.eu/wp-content/uploads/JTELSS-brand-square-logo-large-1-279x279.png" alt="jTELSS logo">
+      <div class="brand-title">
+        <span>jTELSS 2026</span>
+        <h1>Scheduling Assistant</h1>
+      </div>
+    </header>
+
+    <div class="forms-container">
+      <!-- Form for generating a new schedule -->
+      <div class="form-container">
+        <h1>Upload Accepted Workshops</h1>
+        <form id="generateForm" method="post" enctype="multipart/form-data">
+          <label for="excel_file">Excel File</label>
+          <input type="file" id="excel_file" name="excel_file" required>
+
+          <h3>Time Slots per Day</h3>
+          <label for="slots_monday">Monday</label>
+          <input type="number" id="slots_monday" name="slots_monday" value="4" min="0" required>
+
+          <label for="slots_tuesday">Tuesday</label>
+          <input type="number" id="slots_tuesday" name="slots_tuesday" value="4" min="0" required>
+
+          <label for="slots_wednesday">Wednesday</label>
+          <input type="number" id="slots_wednesday" name="slots_wednesday" value="4" min="0" required>
+
+          <label for="slots_thursday">Thursday</label>
+          <input type="number" id="slots_thursday" name="slots_thursday" value="4" min="0" required>
+
+          <label for="slots_friday">Friday</label>
+          <input type="number" id="slots_friday" name="slots_friday" value="4" min="0" required>
+
+          <label for="slots_saturday">Saturday</label>
+          <input type="number" id="slots_saturday" name="slots_saturday" value="4" min="0" required>
+
+          <input type="submit" value="Generate Schedule">
+        </form>
+      </div>
+
+      <!-- Form for uploading an existing schedule -->
+      <div class="form-container">
+        <h1>Upload Current Schedule</h1>
+        <form method="post" action="/upload-schedule" enctype="multipart/form-data">
+          <label for="schedule_file">Schedule Excel File</label>
+          <input type="file" id="schedule_file" name="schedule_file" required>
+          <input type="submit" value="Load Schedule">
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spinner Overlay -->
+  <div id="loadingIndicator">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- JavaScript to display the spinner on form submission -->
+  <script>
+    document.getElementById("generateForm").addEventListener("submit", function() {
+      document.getElementById("loadingIndicator").style.display = "flex";
+    });
+  </script>
+</body>
+</html>
